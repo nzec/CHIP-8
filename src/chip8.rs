@@ -1,9 +1,9 @@
-use crate::ram::Ram;
 use crate::cpu::Cpu;
+use crate::bus::Bus;
 use crate::cpu;
 
 pub struct Chip8 {
-    ram: Ram,
+    bus: Bus,
     cpu: Cpu
 }
 
@@ -11,7 +11,7 @@ pub struct Chip8 {
 impl Chip8 {
     pub fn new() -> Chip8 {
         Chip8 {
-            ram: Ram::new(),
+            bus: Bus::new(),
             cpu: Cpu::new()
         }
     }
@@ -40,25 +40,26 @@ impl Chip8 {
             [0xF0, 0x80, 0xF0, 0x80, 0xF0], // E
             [0xF0, 0x80, 0xF0, 0x80, 0x80]  // F
         ];
+        
         for i in 0..80 {
-            self.ram.write_byte(i as u16, sprites[i / 5][i % 5]);
+            self.bus.ram_write_byte(i as u16, sprites[i / 5][i % 5]);
         }
 
         // Load game
         for i in 0..data.len() {
-            self.ram.write_byte(cpu::PROGRAM_START + (i as u16), data[i]);
+            self.bus.ram_write_byte(cpu::PROGRAM_START + (i as u16), data[i]);
         }
     }
 
     pub fn run_instruction(&mut self) {
-        self.cpu.run_opcode(&mut self.ram);
+        self.cpu.run_opcode(&mut self.bus);
     }
 }
 
 // Testing
 impl Chip8 {
-    pub fn test_ram(&self) {
-        println!("{:?}", self.ram);
+    pub fn test_bus_ram(&self) {
+        self.bus.test_ram();
     }
     pub fn test_cpu(&self) {
         println!("{:?}", self.cpu);
