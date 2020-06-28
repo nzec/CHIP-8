@@ -42,22 +42,27 @@ impl Chip8 {
         ];
         
         for i in 0..80 {
-            self.bus.ram_write_byte(i as u16, sprites[i / 5][i % 5]);
+            self.bus.ram.write_byte(i as u16, sprites[i / 5][i % 5]);
         }
 
         // Load game
         for i in 0..data.len() {
-            self.bus.ram_write_byte(cpu::PROGRAM_START + (i as u16), data[i]);
+            self.bus.ram.write_byte(cpu::PROGRAM_START + (i as u16), data[i]);
         }
     }
 
     pub fn run_instruction(&mut self) {
         self.cpu.run_opcode(&mut self.bus);
+        println!("{:?}", self.cpu);
+        println!("{:?}\n", self.bus);
     }
 }
 
 // Testing
 impl Chip8 {
+    pub fn test_bus(&self) {
+        println!("{:?}", self.bus);
+    }
     pub fn test_bus_ram(&self) {
         self.bus.test_ram();
     }

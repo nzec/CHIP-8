@@ -30,7 +30,7 @@ impl Cpu {
     }
 }
 
-// Methods
+// Basic Methods
 impl Cpu {
     pub fn write_reg_v(&mut self, index: u8, value: u8) {
         self.v[index as usize] = value;
@@ -40,17 +40,13 @@ impl Cpu {
     }
 
     fn draw_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
-
-        println!("Drawing at ({}, {}) with height = {}", x, y, height);
-
         let mut set_vf = false;
 
         for j in 0..height {
-            let b = bus.ram_read_byte(self.i + (j as u16));
-            set_vf |= bus.display_draw_byte(b, x, y + j);
+            let b = bus.ram.read_byte(self.i + (j as u16));
+            set_vf |= bus.display.draw_byte(b, x, y + j);
         }
 
-        
         if set_vf {
             self.write_reg_v(0xF, 1);
         } else {
@@ -62,9 +58,10 @@ impl Cpu {
 // Opcode Methods
 impl Cpu {
     pub fn run_opcode(&mut self, bus: &mut Bus) {
+        
         // Get Opcode
-        let hi = bus.ram_read_byte(self.pc) as u16;
-        let lo = bus.ram_read_byte(self.pc + 1) as u16;
+        let hi = bus.ram.read_byte(self.pc) as u16;
+        let lo = bus.ram.read_byte(self.pc + 1) as u16;
         let opcode = (hi << 8) | lo;
 
         // Parse info from Opcode
@@ -73,6 +70,7 @@ impl Cpu {
         let n = (opcode & 0x000F) as u8;
         let x = ((opcode & 0x0F00) >> 8) as u8;
         let y = ((opcode & 0x00F0) >> 4) as u8;
+        
         let nibbles = (
             ((opcode & 0xF000) >> 12) as u8,
             ((opcode & 0x0F00) >> 8) as u8,
@@ -80,7 +78,7 @@ impl Cpu {
             (opcode & 0x000F) as u8,
         );
 
-        println!("opcode: {:#x} {:?}", opcode, nibbles);
+        println!("opcode: {:#x}: {:?}", opcode, nibbles);
 
         let pc_change: ProgramCounter = match nibbles {
             (0x0, 0x0, 0x0, 0x0) => {
@@ -92,19 +90,27 @@ impl Cpu {
             (0x0, 0x0, 0xE, 0x0) => {
                 // CLS (Display)
                 // Clear the display.
+
+                bus.display.clear();
+
                 ProgramCounter::Next
             }
 
             (0x0, 0x0, 0xE, 0xE) => {
                 // RET (Flow)
                 // Return from a subroutine.
+
+                let addr = self.ret_stack.pop().unwrap();
+                self.pc = addr;
+
                 ProgramCounter::Next
             }
 
             (0x1, _, _, _) => {
                 // JP addr (Flow)
                 // Jump to location nnn.
-                ProgramCounter::Next
+
+                ProgramCounter::Jump(nnn)
             }
 
             (0x2, _, _, _) => {
@@ -131,13 +137,27 @@ impl Cpu {
             (0x4, _, _, _) => {
                 // SNE Vx, byte (Cond)
                 // Skip next instruction if Vx != kk.
-                ProgramCounter::Next
+
+                let vx = self.read_reg_v(x);
+                if vx != nn {
+                    ProgramCounter::Skip
+                } else {
+                    ProgramCounter::Next
+                }
             }
 
             (0x5, _, _, 0x0) => {
                 // SE Vx, Vy (Cond)
                 // Skip next instruction if Vx = Vy.
-                ProgramCounter::Next
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+
+                if vx == vy {
+                    ProgramCounter::Skip
+                } else {
+                    ProgramCounter::Next
+                }
             }
 
             (0x6, _, _, _) => {
@@ -172,66 +192,156 @@ impl Cpu {
             (0x8, _, _, 0x1) => {
                 // OR Vx, Vy (BitOp)
                 // Set Vx = Vx OR Vy.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                self.write_reg_v(x, vx | vy);
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x2) => {
                 // AND Vx, Vy (BitOp)
                 // Set Vx = Vx AND Vy.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                self.write_reg_v(x, vx | vy);
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x3) => {
                 // XOR Vx, Vy (BitOp)
                 // Set Vx = Vx XOR Vy.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                self.write_reg_v(x, vx ^ vy);
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x4) => {
                 // ADD Vx, Vy (Math)
                 // Set Vx = Vx + Vy, set VF = carry.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                let sum: u16 = vx as u16 + vy as u16;
+
+                // Write only the first 8 bits
+                self.write_reg_v(x, sum as u8);
+                // Set VF = Carry
+                if sum > 0xFF {
+                    self.write_reg_v(0xF, 1);
+                }
+                else {
+                    self.write_reg_v(0xF, 1);
+                }
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x5) => {
                 // SUB Vx, Vy (Math)
                 // Set Vx = Vx - Vy, set VF = NOT borrow.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                let diff: i8 = vx as i8 - vy as i8;
+
+                // Write only the first 8 bits
+                self.write_reg_v(x, diff as u8);
+                // Set VF = NOT borrow
+                if diff < 0 {
+                    self.write_reg_v(0xF, 1);
+                } else {
+                    self.write_reg_v(0xF, 0);
+                }
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x6) => {
                 // SHR Vx {, Vy} (BitOp)
                 // Set Vx = Vx SHR 1.
+
+                let vx = self.read_reg_v(x);
+
+                // Set VF = LSB(VX)
+                self.write_reg_v(0xF, vx & 0x1);
+
+                // SET VX = (VX >> 1)
+                self.write_reg_v(x, vx >> 1);
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0x7) => {
                 // SUBN Vx, Vy (Math)
                 // Set Vx = Vy - Vx, set VF = NOT borrow.
+
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+                let diff: i8 = vy as i8 - vx as i8;
+
+                // Write only the first 8 bits
+                self.write_reg_v(x, diff as u8);
+                if diff < 0 {
+                    self.write_reg_v(0xF, 1);
+                } else {
+                    self.write_reg_v(0xF, 0);
+                }
+
                 ProgramCounter::Next
             }
 
             (0x8, _, _, 0xE) => {
                 // SHL Vx {, Vy} (BitOp)
                 // Set Vx = Vx SHL 1.
+
+                let vx = self.read_reg_v(x);
+
+                // Set VF = MSB(VX)
+                self.write_reg_v(0xF, (vx & 0x80) >> 7);
+
+                // SET VX = (VX << 1)
+                self.write_reg_v(x, vx << 1);
+
                 ProgramCounter::Next
             }
 
             (0x9, _, _, 0x0) => {
                 // SNE Vx, Vy (Cond)
                 // Skip next instruction if Vx != Vy.
-                ProgramCounter::Next
+                
+                let vx = self.read_reg_v(x);
+                let vy = self.read_reg_v(y);
+
+                if vx != vy {
+                    ProgramCounter::Skip
+                }
+                else {
+                    ProgramCounter::Next
+                }
             }
 
             (0xA, _, _, _) => {
                 // LD I, addr (MEM)
                 // Set I = nnn.
+
+                self.i = nnn;
+
                 ProgramCounter::Next
             }
 
             (0xB, _, _, _) => {
                 // JP V0, addr (Flow)
                 // Jump to location nnn + V0.
+
+                self.pc = self.read_reg_v(0) as u16 + nnn;
+
                 ProgramCounter::Next
             }
 
@@ -245,10 +355,10 @@ impl Cpu {
                 // DRW Vx, Vy, nibble (Disp)
                 // Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
 
-                println!("{} {}", x, y);
                 let vx = self.read_reg_v(x);
                 let vy = self.read_reg_v(y);
                 self.draw_sprite(bus, vx, vy, n);
+
                 ProgramCounter::Next
             }
 
@@ -256,7 +366,13 @@ impl Cpu {
                 // SKP Vx (KeyOp)
                 // Skip next instruction if key with the value of Vx is pressed.
 
-                ProgramCounter::Next
+                let key = self.read_reg_v(x);
+                if bus.input.key_pressed(key) {
+                    ProgramCounter::Skip
+                }
+                else {
+                    ProgramCounter::Next
+                }
             }
 
             (0xE, _, 0xA, 0x1) => {
@@ -264,7 +380,7 @@ impl Cpu {
                 // Skip next instruction if key with the value of Vx is not pressed.
 
                 let key = self.read_reg_v(x);
-                if bus.input_key_pressed(key) {
+                if bus.input.key_pressed(key) {
                     ProgramCounter::Next
                 }
                 else {
@@ -276,6 +392,9 @@ impl Cpu {
             (0xF, _, 0x0, 0x7) => {
                 // LD Vx, DT (Timer)
                 // Set Vx = delay timer value.
+
+                self.write_reg_v(x, bus.get_delay_timer());
+
                 ProgramCounter::Next
             }
 
@@ -288,6 +407,10 @@ impl Cpu {
             (0xF, _, 0x1, 0x5) => {
                 // LD DT, Vx (Timer)
                 // Set delay timer = Vx.
+
+                let vx = self.read_reg_v(x);
+                bus.set_delay_timer(vx);
+
                 ProgramCounter::Next
             }
 
@@ -327,10 +450,15 @@ impl Cpu {
             (0xF, _, 0x6, 0x5) => {
                 // LD Vx, [I] (MEM)
                 // Read registers V0 through Vx from memory starting at location I.
+
+                for index in 0..x {
+                    let value = bus.ram.read_byte(self.i + index as u16);
+                    self.write_reg_v(index, value);
+                }
+
                 ProgramCounter::Next
             }
             _ => {
-                println!("{:?}", self);
                 panic!("Unrecognized Instruction")
             }
         };

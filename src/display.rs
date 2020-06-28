@@ -20,20 +20,29 @@ impl Display {
 
         let mut flipped: bool = false;
 
+        let y_cord = y as usize;
+        
         for k in 0..8 {
             let x_cord: usize = (x as usize) + k;
-            let y_cord = y as usize;
             let bit = (byte >> (7 - k)) & 0b0000_0001;
-            let prev = self.screen[x_cord][y_cord];
+            let prev = self.screen[y_cord][x_cord];
             match bit {
-                0 => self.screen[x_cord][y_cord] = 1,
-                1 => self.screen[x_cord][y_cord] = 0,
+                0 => self.screen[y_cord][x_cord] = 1,
+                1 => self.screen[y_cord][x_cord] = 0,
                 _ => unreachable!()
             }
-            if prev != self.screen[x_cord][y_cord] {
+            if prev != self.screen[y_cord][x_cord] {
                 flipped = true;
             }
         }
         flipped
+    }
+
+    pub fn clear(&mut self) {
+        for y in 0..HEIGHT as usize {
+            for x in 0..WIDTH as usize {
+                self.screen[x][y] = 0;
+            }
+        }
     }
 }

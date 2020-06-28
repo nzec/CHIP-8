@@ -2,10 +2,15 @@ use crate::display::Display;
 use crate::input::Input;
 use crate::ram::Ram;
 
+use std::fmt;
+use std::time;
+
 pub struct Bus {
-    ram: Ram,
-    input: Input,
-    display: Display,
+    pub ram: Ram,
+    pub input: Input,
+    pub display: Display,
+    delay_timer: u8,
+    delay_timer_set_time: time::Instant
 }
 
 // Related Functions
@@ -15,26 +20,31 @@ impl Bus {
             ram: Ram::new(),
             input: Input::new(),
             display: Display::new(),
+            delay_timer: 0,
+            delay_timer_set_time: time::Instant::now()
         }
     }
 }
 
-// Methods
+// Expose Children's Methods to outside
 impl Bus {
-    pub fn ram_read_byte(&self, address: u16) -> u8 {
-        self.ram.read_byte(address)
+    // Set Delay Timer
+    pub fn set_delay_timer(&mut self, value: u8) {
+        self.delay_timer_set_time = time::Instant::now();
+        self.delay_timer = value;
     }
 
-    pub fn ram_write_byte(&mut self, address: u16, value: u8) {
-        self.ram.write_byte(address, value);
-    }
+    // Get Delay Timer
+    pub fn get_delay_timer(&self) -> u8 {
+        let diff = time::Instant::now() - self.delay_timer_set_time;
+        let ms = diff.as_millis();
 
-    pub fn display_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool {
-        self.display.draw_byte(byte, x, y)
-    }
-
-    pub fn input_key_pressed(&self, key_code: u8) -> bool {
-        self.input.key_pressed(key_code)
+        let ticks = ms / 16;
+        if ticks >= self.delay_timer as u128 {
+            0
+        } else {
+            self.delay_timer - ticks as u8
+        }
     }
 }
 
@@ -42,5 +52,10 @@ impl Bus {
 impl Bus {
     pub fn test_ram(&self) {
         println!("{:?}", self.ram);
+    }
+}
+impl fmt::Debug for Bus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "delay_timer: {}", self.delay_timer)
     }
 }
