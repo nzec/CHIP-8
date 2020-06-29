@@ -16,8 +16,8 @@ pub struct C8 {
     pub v: [u8; REGISTER_COUNT],        // Vx Registers, VF = Special Flag
     pub display: [u32; WIDTH * HEIGHT], // Display Buffer
     i: u16,                             // Used to store Memory Addresses
-    pub dt: u8,                             // Delay Timer
-    pub st: u8,                             // Sound Timer
+    pub dt: u8,                         // Delay Timer
+    pub st: u8,                         // Sound Timer
     stack: Vec<u16>,                    // Return Stack
     pub pc: u16,                        // Program Counter
 }

@@ -36,7 +36,7 @@ fn main() {
         WIDTH,
         HEIGHT,
         WindowOptions {
-            scale: Scale::X8,
+            scale: Scale::X16,
             ..WindowOptions::default()
         },
     )
