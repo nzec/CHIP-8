@@ -1,6 +1,7 @@
 use c8::{HEIGHT, RAM_SIZE, WIDTH};
 use minifb::{Key, Scale, Window, WindowOptions};
 use std::{env, fs};
+use rodio::Sink;
 
 mod c8;
 
@@ -21,6 +22,13 @@ fn main() {
     };
     c8.load_ram(&rom);
     println!("{:?}", rom);
+
+    // Setup Audio
+    let audio_device  = rodio::default_output_device().unwrap();
+    let audio_sink = Sink::new(&audio_device);
+    let audio_source = rodio::source::SineWave::new(440);
+    audio_sink.append(audio_source);
+    audio_sink.pause();
 
     // Setup Window
     let mut window = Window::new(
@@ -108,10 +116,10 @@ fn main() {
             // The frequency of this tone is decided by the author of the
             // interpreter.
             if c8.st > 0 {
-                // Play
+                audio_sink.play();
                 c8.st -= 1;
             } else if c8.st == 0 {
-                // Pause
+                audio_sink.pause();
             }
 
             // Update Window

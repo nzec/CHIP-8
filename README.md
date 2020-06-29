@@ -10,7 +10,7 @@ See [Resources](#Resources) for a ROMs.
 
 ## Information
 
-Uses [rust_minifb](https://github.com/emoon/rust_minifb) to for displaying.<br>
+Uses [rust_minifb](https://github.com/emoon/rust_minifb) to for display and [rodio]() for sound.<br>
 Timers and screeen updates at the rate of 60 Hz regardless of the Update Rate.
 
 ```
