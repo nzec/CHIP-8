@@ -1,7 +1,13 @@
 # CHIP-8 Interpreter/Emulator
-A CHIP-8 Interpreter/Emulator written on Rust :heart:
+A CHIP-8 Interpreter/Emulator written on [Rust](https://www.rust-lang.org/) :heart:
 
 ## Run a ROM
+Download from [Releases](/../../releases) and run using
+```
+chip8.exe <path_to_rom>
+```
+
+or if you have [Rust](https://www.rust-lang.org/) installed, clone the repository and run using
 ```
 cargo run <path_to_rom>
 ```
