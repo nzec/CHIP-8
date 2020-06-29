@@ -6,7 +6,7 @@ cargo run games/INVADERS.ch8
 
 todo: write readme, sound, hertz stuff
 
-Resources:
+### Resources:
 - [CHIP-8 Wikipedia Page](https://en.wikipedia.org/wiki/CHIP-8)
 - [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 - [Mastering CHIP-8 [Matthew Mikolay]](http://mattmik.com/files/chip8/mastering/chip8.html)
