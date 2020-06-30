@@ -40,3 +40,4 @@ See [#1](/../../issues/1) for Problems and Todos.
 - [Skosulor's CHIP-8 Tester](https://github.com/Skosulor/c8int/tree/master/test)
 - [corax89's chip-8-test-rom](https://github.com/corax89/chip8-test-rom)
 - [massung's CHIP-8 Emulator](https://github.com/massung/CHIP-8)
+- [Octo](https://github.com/JohnEarnest/Octo)
