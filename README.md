@@ -1,6 +1,8 @@
 # CHIP-8 Interpreter/Emulator
 A CHIP-8 Interpreter/Emulator written on [Rust](https://www.rust-lang.org/) :heart:
 
+![Emulator](https://i.imgur.com/bwC63Hl.png)
+
 ## Running
 Download from [Releases](/../../releases) and run using
 ```
