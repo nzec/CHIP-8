@@ -4,15 +4,15 @@ A CHIP-8 Interpreter/Emulator written on [Rust](https://www.rust-lang.org/) :hea
 ## Running
 Download from [Releases](/../../releases) and run using
 ```
-chip8.exe <path_to_rom>
+chip8.exe <path_to_rom> <update_rate>
 ```
 
 or if you have [Rust](https://www.rust-lang.org/) installed, clone the repository and run using
 ```
-cargo run <path_to_rom>
+cargo run <path_to_rom> <update_rate>
 ```
 
-See [Resources](#Resources) for a ROMs.
+**Note** Update Rate is optional and defaults to 480.
 
 ## Information
 
@@ -37,7 +37,7 @@ I have included a lot of ROMs in the `/roms` from the following sources
 - revival - Revival Studios Chip-8 Program Pack [Website (revival-studios.com)](http://www.revival-studios.com/other.php) | [dmatlack/chip8/roms](https://github.com/dmatlack/chip8/tree/master/roms)
 - chip8-test-rom - [corax89/chip-8-test-rom](https://github.com/corax89/chip8-test-rom)
 - c8_test - [Skosulor/c8int/test](https://github.com/Skosulor/c8int/tree/master/test)
-- chip8Archive - [JohnEarnest/chip8Archive/roms](https://github.com/JohnEarnest/chip8Archive/tree/master/roms)
+- chip8Archive - [JohnEarnest/chip8Archive](https://github.com/JohnEarnest/chip8Archive/)
 
 ## Resources
 

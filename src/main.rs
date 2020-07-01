@@ -5,9 +5,6 @@ use rodio::Sink;
 
 mod c8;
 
-const DISPLAY_REFRESH_RATE: f64 = 480.0;
-const RUNLOOP_TIMER_DEFAULT: usize = (DISPLAY_REFRESH_RATE / 60.0) as usize;
-
 fn main() {
     println!("CHIP-8 Interpreter/Emulator");
     let mut c8 = c8::C8::new();
@@ -48,11 +45,14 @@ fn main() {
     // time (external code taking longer) minifb will not do any waiting at all
     // so there is no loss in CPU performance with this feature.
     // Source: https://docs.rs/minifb/0.16.0/minifb/struct.Window.html#method.limit_update_rate
-    window.limit_update_rate(Some(std::time::Duration::from_secs_f64(1.0 / DISPLAY_REFRESH_RATE)));
+    
+    let display_refresh_rate: f64 = if args.len() <= 2 { 480.0 } else { args[2].parse::<f64>().unwrap() };
+    let runloop_timer_default: usize = (display_refresh_rate / 60.0) as usize;
+    window.limit_update_rate(Some(std::time::Duration::from_secs_f64(1.0 / display_refresh_rate)));
 
     let mut executing = true;
     let mut wait_for_key: usize = 0;
-    let mut update_counter: usize = RUNLOOP_TIMER_DEFAULT;
+    let mut update_counter: usize = runloop_timer_default;
 
     while window.is_open() && !window.is_key_down(Key::Escape) && c8.pc <= RAM_SIZE as u16 {
         let mut key_press: [bool; 16] = [false; 16];
@@ -127,7 +127,7 @@ fn main() {
                 .update_with_buffer(&c8.display, WIDTH, HEIGHT)
                 .unwrap();
 
-                update_counter = RUNLOOP_TIMER_DEFAULT;
+                update_counter = runloop_timer_default;
         } else {
             update_counter -= 1;
         }
