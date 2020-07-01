@@ -1,7 +1,7 @@
 # CHIP-8 Interpreter/Emulator
 A CHIP-8 Interpreter/Emulator written on [Rust](https://www.rust-lang.org/) :heart:
 
-## Run a ROM
+## Running
 Download from [Releases](/../../releases) and run using
 ```
 chip8.exe <path_to_rom>
