@@ -507,8 +507,8 @@ impl C8 {
 
                 for (k, b) in printer.iter().enumerate() {
                     for j in 0..8 {
-                        let cux = (inx + j) % WIDTH as u8;
-                        let cuy = (iny + k as u8) % HEIGHT as u8;
+                        let cux = inx.wrapping_add(j) % WIDTH as u8;
+                        let cuy = iny.wrapping_add(k as u8) % HEIGHT as u8;
 
                         let cord = (cuy as usize * WIDTH) + cux as usize;
                         let is_old_set = self.display[cord] == PX_ON;
