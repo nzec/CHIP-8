@@ -32,7 +32,7 @@ See [#1](/../../issues/1) for Problems and Todos.
 
 ## ROMs
 
-I have included a lot of ROMs in the `/roms` from the following sources
+I have included a lot of ROMs in `rom_pack.zip` from the following sources
 
 - GAMES - [SVision-8 (devernay.free.fr)](http://devernay.free.fr/hacks/chip8/GAMES.zip)
 - c8games - [Zophar's Domain Chip-8 Games Pack (zophar.net)](http://devernay.free.fr/hacks/chip8/GAMES.zip)
